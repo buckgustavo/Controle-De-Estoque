@@ -14,7 +14,7 @@ export default function InventarioPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/items/")
+    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/items/`)
       .then((res) => res.json())
       .then((data) => {
         setProdutos(Array.isArray(data) ? data : []);

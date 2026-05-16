@@ -27,6 +27,9 @@ __pycache__/
 dist/
 *.egg
 
+# Scripts utilitários locais — não commitar
+reset_senha.py
+
 # Environment secrets — NEVER commit these
 .env
 .env.local
@@ -39,8 +42,12 @@ dist/
 .claude/
 .agents/
 skills-lock.json
-my-app/CLAUDE.md
-my-app/AGENTS.md
+CLAUDE.md
+AGENTS.md
+RTK.md
+**/.claude/
+**/CLAUDE.md
+**/AGENTS.md
 
 # Boilerplate template — not part of the application
 next-monorepo/
