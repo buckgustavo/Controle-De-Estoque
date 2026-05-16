@@ -1,6 +1,22 @@
 # EstoquePro
 
-Sistema web de gestão e movimentação de estoque para pequenas empresas. Elimina planilhas manuais, previne divergências e mantém rastreabilidade completa de movimentações.
+> Sistema web de gestão e movimentação de estoque para pequenas empresas. Elimina planilhas manuais, previne divergências e mantém rastreabilidade completa de movimentações.
+
+![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat&logo=next.js)
+![FastAPI](https://img.shields.io/badge/FastAPI-Python%203.11+-009688?style=flat&logo=fastapi)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=flat&logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat&logo=docker&logoColor=white)
+![License](https://img.shields.io/badge/licença-MIT-green?style=flat)
+
+---
+
+## Visão Geral
+
+O EstoquePro é uma aplicação fullstack com frontend em **Next.js (App Router)** e backend em **FastAPI**, conectados a um **PostgreSQL 16**. A autenticação é baseada em JWT (HS256) com dois perfis de acesso — Admin e Operador — e o projeto inclui página de política de privacidade em conformidade com a **LGPD (Lei nº 13.709/2018)**.
+
+Todo o ambiente de desenvolvimento pode ser levantado com um único comando via Docker Compose, que orquestra os três serviços (`db`, `api`, `web`) com healthcheck e restart automático.
+
+---
 
 ## Stack
 
@@ -8,45 +24,76 @@ Sistema web de gestão e movimentação de estoque para pequenas empresas. Elimi
 |---|---|
 | Frontend | Next.js (App Router) + TailwindCSS |
 | Backend | FastAPI (Python 3.11+) |
-| Banco de dados | PostgreSQL |
-| Autenticacao | JWT (HS256) com perfis Admin/Operador |
-| Containerizacao | Docker + Docker Compose |
+| Banco de dados | PostgreSQL 16 |
+| Autenticação | JWT (HS256) com perfis Admin/Operador |
+| ORM | SQLAlchemy |
+| Containerização | Docker + Docker Compose |
 
-## Estrutura do projeto
+---
+
+## Estrutura do Projeto
 
 ```
 .
 ├── my-app/
-│   ├── app/              # Paginas Next.js (App Router)
-│   │   ├── dashboard/    # Painel principal
-│   │   ├── login/        # Autenticacao
-│   │   ├── register/     # Cadastro de usuarios
-│   │   └── privacidade/  # Politica de privacidade (LGPD)
-│   └── backend/          # API FastAPI
-│       ├── main.py       # Rotas e startup
-│       ├── auth.py       # JWT e autenticacao
-│       ├── database.py   # Modelos SQLAlchemy
-│       └── .env.example  # Variaveis de ambiente (modelo)
-└── docker-compose.yml    # PostgreSQL local
+│   ├── app/                  # Páginas Next.js (App Router)
+│   │   ├── dashboard/        # Painel principal
+│   │   ├── login/            # Autenticação
+│   │   ├── register/         # Cadastro de usuários
+│   │   └── privacidade/      # Política de privacidade (LGPD)
+│   └── backend/              # API FastAPI
+│       ├── main.py           # Rotas e startup da aplicação
+│       ├── auth.py           # JWT, hashing de senha e autenticação
+│       ├── database.py       # Modelos SQLAlchemy e conexão
+│       └── .env.example      # Referência das variáveis de ambiente
+└── docker-compose.yml        # Orquestração dos serviços (db, api, web)
 ```
 
-## Configuracao
+---
 
-### 1. Variaveis de ambiente (backend)
+## Como Executar
+
+### Pré-requisitos
+
+- Docker e Docker Compose instalados
+- Node.js 18+ (apenas para desenvolvimento local sem Docker)
+- Python 3.11+ (apenas para desenvolvimento local sem Docker)
+
+### Com Docker (recomendado)
+
+**1. Configure as variáveis de ambiente**
 
 ```bash
 cp my-app/backend/.env.example my-app/backend/.env
+# Edite o .env com suas credenciais
 ```
 
-Edite `.env` com suas credenciais:
+| Variável | Obrigatória | Descrição |
+|---|---|---|
+| `DATABASE_URL` | ✅ | String de conexão PostgreSQL (`postgresql://user:pass@host:5432/db?sslmode=require`) |
+| `SECRET_KEY` | ✅ | Chave HMAC para assinatura JWT — gere com `openssl rand -hex 32` |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | ❌ | Expiração do token em minutos (padrão: `60`) |
+| `NEXT_PUBLIC_API_URL` | ❌ | URL pública da API consumida pelo frontend (padrão: `http://localhost:8000`) |
 
-```env
-DATABASE_URL=postgresql://user:password@host:5432/dbname?sslmode=require
-SECRET_KEY=<gere com: openssl rand -hex 32>
-ACCESS_TOKEN_EXPIRE_MINUTES=60
+**2. Subir todos os serviços**
+
+```bash
+docker-compose up -d
 ```
 
-### 2. Backend (FastAPI)
+Os serviços sobem na seguinte ordem: `db` (com healthcheck) → `api` → `web`.
+
+| Serviço | URL |
+|---|---|
+| Frontend | http://localhost:3000 |
+| Backend (API) | http://localhost:8000 |
+| Documentação interativa | http://localhost:8000/docs |
+
+---
+
+### Sem Docker (desenvolvimento local)
+
+**Backend**
 
 ```bash
 cd my-app/backend
@@ -54,9 +101,7 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
-API disponivel em `http://localhost:8000`. Documentacao interativa em `http://localhost:8000/docs`.
-
-### 3. Frontend (Next.js)
+**Frontend**
 
 ```bash
 cd my-app
@@ -64,35 +109,46 @@ npm install
 npm run dev
 ```
 
-Aplicacao disponivel em `http://localhost:3000`.
+---
 
-### 4. Banco de dados local (opcional)
+## Privacidade e Conformidade LGPD
 
-```bash
-docker-compose up -d
-```
+| Artigo | Implementação |
+|---|---|
+| Art. 7, I | Consentimento explícito e informado no cadastro de usuários |
+| Art. 8 | Checkbox de consentimento com link para a Política de Privacidade |
+| Art. 17-22 | Direitos dos titulares documentados na página `/privacidade` |
+| Art. 46 | Senhas em hash bcrypt, tokens JWT com expiração definida |
 
-Sobe um PostgreSQL local na porta 5432. Use a `DATABASE_URL` correspondente no `.env`.
+---
 
-## Conformidade LGPD
+## Segurança
 
-Este projeto implementa os seguintes requisitos da Lei 13.709/2018:
+- Nunca versione o arquivo `.env` — ele está listado no `.gitignore`.
+- Gere o `SECRET_KEY` com uma fonte criptograficamente segura: `openssl rand -hex 32`.
+- Configure `CORS_ORIGINS` para o domínio real do frontend antes do deploy em produção.
+- Habilite HTTPS no servidor de produção.
 
-- **Art. 7, I** — Consentimento explicito e informado no cadastro de usuarios
-- **Art. 8** — Checkbox de consentimento com link para a Politica de Privacidade
-- **Art. 17-22** — Direitos dos titulares documentados na pagina `/privacidade`
-- **Art. 46** — Senhas armazenadas em hash (bcrypt), tokens JWT com expiracao
-- Segredos (credenciais, SECRET_KEY) mantidos em variaveis de ambiente, nunca no codigo
-
-## Seguranca
-
-- Nenhuma credencial ou secret deve ser commitada. Use `.env` (ignorado pelo `.gitignore`)
-- Em producao, gere um `SECRET_KEY` com `openssl rand -hex 32`
-- Configure `CORS_ORIGINS` para o dominio real do frontend antes do deploy
-- Habilite HTTPS no servidor de producao
+---
 
 ## Deploy
 
-- **Frontend:** Vercel (deploy automatico via push na branch `main`)
-- **Backend:** Docker em qualquer provedor (AWS App Runner, Fly.io, Railway)
-- **Banco:** PostgreSQL gerenciado (Neon, Supabase, AWS RDS)
+| Serviço | Plataforma sugerida |
+|---|---|
+| Frontend | Vercel (deploy automático via push na `main`) |
+| Backend | Docker em AWS App Runner, Fly.io ou Railway |
+| Banco de dados | PostgreSQL gerenciado: Neon, Supabase ou AWS RDS |
+
+---
+
+## Contribuindo
+
+1. Faça um fork e crie uma branch de feature (`git checkout -b feat/minha-feature`).
+2. Siga o padrão [Conventional Commits](https://www.conventionalcommits.org/pt-br/).
+3. Abra um Pull Request com descrição clara da mudança e sua motivação.
+
+---
+
+## Licença
+
+Distribuído sob a licença MIT. Consulte o arquivo [`LICENSE`](LICENSE) para mais detalhes.
